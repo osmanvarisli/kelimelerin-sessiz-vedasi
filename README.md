@@ -21,14 +21,6 @@ This is a lightweight, serverless "Single Page Application" (SPA):
 * **Logic:** Vanilla JavaScript.
 * **Libraries:** [html2canvas](https://html2canvas.hertzen.com/) (for image rendering).
 
-## 📦 Getting Started
-
-To run this project locally:
-1.  Clone the repository:
-    ```bash
-    git clone [https://github.com/your-username/silent-farewell-of-words.git](https://github.com/your-username/silent-farewell-of-words.git)
-    ```
-2.  Open the `.html` file in any modern web browser.
 
 ## 🤝 Contributing
 
