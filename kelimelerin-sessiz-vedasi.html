@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelimelerin Sessiz Vedası</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #5d4037;
+            --accent: #d4af37;
+            --bg: #fdf5e6;
+            --card-bg: #fffcf5;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            width: 100%;
+            background: var(--primary);
+            color: var(--accent);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .search-container { margin: 15px; width: 85%; max-width: 400px; }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: 2px solid var(--accent);
+            background: var(--card-bg);
+            color: var(--primary);
+            outline: none;
+        }
+
+        .card-wrapper {
+            width: 90%;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        .decorative-card {
+            background: var(--card-bg);
+            border: 15px solid transparent;
+            border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 0 L100 0 L100 100 L0 100 Z' fill='none' stroke='%23d4af37' stroke-width='10'/%3E%3Ccircle cx='0' cy='0' r='10' fill='%235d4037'/%3E%3Ccircle cx='100' cy='0' r='10' fill='%235d4037'/%3E%3Ccircle cx='0' cy='100' r='10' fill='%235d4037'/%3E%3Ccircle cx='100' cy='100' r='10' fill='%235d4037'/%3E%3C/svg%3E") 30 stretch;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .word-title {
+            text-align: center;
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            border-bottom: 2px double var(--accent);
+        }
+
+        .origin {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .section-title {
+            font-weight: bold;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            margin-top: 15px;
+            letter-spacing: 1px;
+        }
+
+        .content-text {
+            font-size: 1.1rem;
+            color: #333;
+            margin: 5px 0 10px 0;
+            line-height: 1.4;
+        }
+
+        .quote-box {
+            font-style: italic;
+            font-size: 0.95rem;
+            color: #555;
+            padding: 10px;
+            background: rgba(212, 175, 55, 0.05);
+            border-left: 2px solid var(--accent);
+            margin: 10px 0;
+        }
+
+        .controls { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; justify-content: center; }
+        button {
+            padding: 12px 25px;
+            border: 1px solid var(--accent);
+            background: var(--primary);
+            color: var(--accent);
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        button:hover { background: #3e2723; color: #fff; }
+
+        #quiz-section { display: none; width: 90%; max-width: 500px; text-align: center; }
+        .option-btn {
+            display: block; width: 100%; margin: 10px 0; padding: 15px;
+            background: white; border: 2px solid var(--accent); border-radius: 5px;
+            text-align: left; font-family: inherit; cursor: pointer;
+        }
+
+        @media (max-width: 480px) {
+            .word-title { font-size: 1.8rem; }
+            .content-text { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Kelimelerin Sessiz Vedası</h1>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Kelime arayın..." onkeyup="searchWord()">
+    </div>
+    <div class="controls">
+        <button onclick="showCards()">KARTLAR</button>
+        <button onclick="startQuiz()">TEST MODU</button>
+    </div>
+</div>
+
+<div id="card-view">
+    <div class="card-wrapper" id="captureArea">
+        <div class="decorative-card">
+            <h2 class="word-title" id="wordTitle"></h2>
+            <p class="origin" id="wordOrigin"></p>
+
+            <div id="currentSection">
+                <div class="section-title" id="currentLabel">Günümüz Anlamı</div>
+                <p class="content-text" id="currentMeaning"></p>
+                <div class="quote-box" id="currentQuote"></div>
+            </div>
+
+            <div id="oldSection">
+                <div class="section-title">Eski Anlamı</div>
+                <p class="content-text" id="oldMeaning"></p>
+                <div class="quote-box" id="oldQuote"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="prevCard()">← GERİ</button>
+        <button onclick="downloadCard()">RESİM OLARAK İNDİR</button>
+        <button onclick="nextCard()">İLERİ →</button>
+    </div>
+</div>
+
+<div id="quiz-section">
+    <div style="font-size: 1.2rem; margin: 20px; font-weight: bold;">
+        Doğru: <span id="correctScore" style="color: green;">0</span> | 
+        Yanlış: <span id="wrongScore" style="color: red;">0</span>
+    </div>
+    <div class="decorative-card" style="margin-bottom: 20px;">
+        <p>Aşağıdaki kelimenin <b>güncel</b> anlamı nedir?</p>
+        <h2 class="word-title" id="quizWord">...</h2>
+    </div>
+    <div id="quizOptions"></div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+
+<script>
+const data = [
+    {
+        word: "Alicenap",
+        origin: "Arapça ʿālī + cenāb",
+        current: "Cömert, onurlu",
+        old: "Asil, soylu yaradılışlı",
+        quote: "\u201cSenin annen mert, doğru ve alicenap bir kadındır.\u201d \u2014 Halide Edip Adıvar, Sinekli Bakkal",
+        oldQuote: "\u201cAlicenap tavırlarıyla herkesin saygısını kazanmıştı.\u201d",
+    },
+    {
+        word: "Amiyane",
+        origin: "Arapça ʿāmmī + Farsça -āne",
+        current: "Basit, sıradan",
+        old: "",
+        quote: "\u201cHem, bu çeşit amiyane işler diplomatın nesine?\u201d \u2014 Yakup Kadri Karaosmanoğlu, Yaban",
+        oldQuote: "",
+    },
+    {
+        word: "Ati",
+        origin: "Arapça ātī",
+        current: "Gelecek",
+        old: "",
+        quote: "\u201cNe harabiyim ne harabatiyim / Kökü mazide olan atiyim.\u201d \u2014 Yahya Kemal Beyatlı",
+        oldQuote: "",
+    },
+    {
+        word: "Bay",
+        origin: "Eski Türkçe \u201cbay\u201d",
+        current: "Erkek adlarının önüne getirilen saygı sözü",
+        old: "Zengin, varlıklı kişi",
+        quote: "--Bay Doğan.",
+        oldQuote: "\u201cObanın en bay adamı oydu.\u201d \u2014 Osmanlıca metin",
+    },
+    {
+        word: "Bedbin",
+        origin: "Farsça bad-bīn",
+        current: "Karamsar",
+        old: "",
+        quote: "\"Onu tanımasaydım insanlık hakkında bedbin bir fikir taşıyarak hayattan geçecektim.\" - Yahya Kemal Beyatlı",
+        oldQuote: "",
+    },
+    {
+        word: "Berceste",
+        origin: "Farsça bar-ceste",
+        current: "Özlü, güzel (söz). Seçkin, değerli",
+        old: "",
+        quote: "\"Şairin bu mısrası tam anlamıyla bir berceste, herkesi derinden etkiledi\"",
+        oldQuote: "",
+    },
+    {
+        word: "Beyhude",
+        origin: "Farsça bī-hūde",
+        current: "Boşuna, yararsız",
+        old: "",
+        quote: "\"O kırkyıllık davada beyhude akıntıya kürek çekmişiz.\" - Yahya Kemal Beyatlı",
+        oldQuote: "",
+    },
+    {
+        word: "Beynelmilel",
+        origin: "Arapça bayna'l-milel",
+        current: "Uluslararası",
+        old: "",
+        quote: "\u201cMedeniyetin beynelmilel fakat harsın mutlaka millî olduğunu unutmayacağız.\u201d \u2014 Orhan Seyfi Orhon",
+        oldQuote: "",
+    },
+    {
+        word: "Bilmukabele",
+        origin: "Arapça bi'l-mukābele",
+        current: "Karşılıklı olarak.\u201cBen de size\u201d anlamında kullanılan söz",
+        old: "",
+        quote: "\u201c\"Tebrikler, harika bir sunumdu.\" - \"Bilmukabele, sizin katkılarınızla daha da güzel oldu.\"\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Canavar",
+        origin: "Farsça cānāver",
+        current: "Masallarda geçen yabani, yırtıcı hayvan. Acımasız, kötü ruhlu, zalim kimse (mecaz).",
+        old: "Canlı yaratık, her çeşit hayvan (can + sahibi)",
+        quote: "\u201cSeni bu canavardan kurtarmak istiyorum. Onu uçuruma iteyim mi?\u201d \u2014 Halide Edip Adıvar, Sinekli Bakkal",
+        oldQuote: "\u201cObadaki canavarlar sayısızdı; her çeşidi görünüyordu.\u201d",
+    },
+    {
+        word: "Canhıraş",
+        origin: "Farsça canhıraş (can + hırgür, bağırış)",
+        current: "Yürek paralayan, iç tırmalayan, tüyler ürpertecek kadar korkunç.",
+        old: "",
+        quote: "\"Canhıraş bir feryat koparır koparmaz ipek gömlekle odaya kendimi atmışım.\" - Sermet Muhtar Alus",
+        oldQuote: "",
+    },
+    {
+        word: "Çerağ",
+        origin: "Farsça çarāgh",
+        current: "Mum, kandil, lamba vb. ışık veren araç; çırağ.",
+        old: "",
+        quote: "\u201cOdanın köşesinde bir çerağ yanıyordu.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Çirk",
+        origin: "Farsça çirk",
+        current: "Çirkin, nahoş, pislik, kir.",
+        old: "",
+        quote: "\u201cElbiseleri çirk içinde kalmıştı, hemen temizlenmesi gerekiyordu.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Davar",
+        origin: "Eski Türkçe 'tavar'",
+        current: "Koyun ve keçiye verilen ortak ad.",
+        old: "\u201ctavar\u201d: 1. sığır, koyun, 2. mal, mülk",
+        quote: "\"Evin önünde birkaç davar geviş getiriyordu.\" - Halikarnas Balıkçısı",
+        oldQuote: "\u201cOl bilir hem eşkere gizlileri / Ol verir kamuya rızkı tavarı\u201d",
+    },
+    {
+        word: "Deryadil",
+        origin: "Farsça daryā + dil",
+        current: "Her şeyi hoş gören, çok sabırlı.",
+        old: "",
+        quote: "\u201cO, deryadil bir insan olarak tanınırdı.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Diğerkam",
+        origin: "Farsça dīgar + kām",
+        current: "Başkalarını düşünen, fedakâr",
+        old: "",
+        quote: "\u201cO kadar diğerkâm biriydi ki, cebindeki son parayı tanımadığı birine hiç düşünmeden verdi.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Dilhun",
+        origin: "Farsça dil + hun",
+        current: "İçi kan ağlayan, çok üzüntülü (kimse).",
+        old: "",
+        quote: "\"Onun acı dolu hikayesini dinledikten sonra herkes dilhun oldu.\"",
+        oldQuote: "",
+    },
+    {
+        word: "Dimağ",
+        origin: "Arapça dimāg",
+        current: "Zihin, akıl, beyin.",
+        old: "",
+        quote: "\u201cBilginin dimağında yer etmesi için sürekli tekrarlamak gerekir.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Efkâr",
+        origin: "Arapça afkār",
+        current: "Herhangi üzücü bir olay sebebiyle hissedilen hüzün.",
+        old: "Düşünceler, fikirler",
+        quote: "\"Efkarım birikir sığmaz içime.\"",
+        oldQuote: "\"Müsademe-i efkârdan barika-i hakikat doğar\" (Fikirlerin çarpışmasından gerçeklerin ışığı doğar.)",
+    },
+    {
+        word: "Efsunkar",
+        origin: "Farsça efsūn + kâr",
+        current: "Büyüleyici, etkileyici",
+        old: "",
+        quote: "\u201cEfsunkâr bakışlarıyla herkesi kendine hayran bırakıyordu.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Efsurde",
+        origin: "Farsça efsürde",
+        current: "Üzgün, kederli, donuk",
+        old: "",
+        quote: "\"Baharın gelişi bile onun efsurde kalbine neşe getirmeye yetmemişti.\"",
+        oldQuote: "",
+    },
+    {
+        word: "Ehvenişer",
+        origin: "Arapça ehven + şer",
+        current: "İki kötü durumdan daha az kötü olanı",
+        old: "",
+        quote: "\u201cBu durumda ehvenişer olanı seçmek zorundayız.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Emek",
+        origin: "Türkçe emgek",
+        current: "Bir işin yapılması için harcanan beden ve kafa gücü.",
+        old: "Eski Türkçe emgek: zorluk, zahmet, eziyet",
+        quote: "\u201cBu başarıda yılların emeği var.\u201d",
+        oldQuote: "\u201cOk bodun emgek körti.\u201d [Ok boyları zahmet çekti]",
+    },
+    {
+        word: "Erik",
+        origin: "Türkçe erük",
+        current: "Gülgillerden, çeşitli türleri olan bir meyve ağacı ve onun meyvesi.",
+        old: "'erük': yemiş, çekirdekli meyvelerin genel adı",
+        quote: "\u201cBahçedeki erik ağacı bu yıl çok meyve verdi.\u201d",
+        oldQuote: "'tülüg erük' (şeftali), 'sarıġ erük' (kayısı), 'kara erük' (erik). [Kaşgarî, 1073]",
+    },
+    {
+        word: "Eşbah",
+        origin: "Arapça şebeh",
+        current: "Görünüşler, benzerlikler.",
+        old: "",
+        quote: "\u201cKaranlıkta gördüğü eşbah onu korkuttu.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Evrak",
+        origin: "Arapça evra:kı",
+        current: "Resmî kurumlarda işlem gören belgeler.",
+        old: "Yapraklar, kitap sayfaları, yazılı kâğıtlar.",
+        quote: "\"Mektupçu evrak okur, cevap yazar, muhabere işlerini idare ederdi.\" - Sâmiha Ayverdi",
+        oldQuote: "Yazılur anda göŋül evrāḳına. [Aşık Paşa, Garib-name, 1330]",
+    },
+    {
+        word: "Evvelbahar",
+        origin: "Farsça evvel + bahar",
+        current: "İlkbahar",
+        old: "",
+        quote: "\"Evvelbahar geldiğinde, doğa yeniden canlanır ve çiçekler açar.\"",
+        oldQuote: "",
+    },
+    {
+        word: "Feveran",
+        origin: "Arapça feverân",
+        current: "Kaynayıp fışkırma. Birdenbire öfkelenme, köpürme, parlama.",
+        old: "",
+        quote: "\"Sabırlı olmak, parlamamak, duygusal feveranlardan uzak kalmak hassası da bizde çok eksik.\" - Haldun Taner",
+        oldQuote: "",
+    },
+    {
+        word: "Garabet",
+        origin: "Arapça garâbet",
+        current: "Gariplik, tuhaflık",
+        old: "",
+        quote: "\"Bu kızda izahı güç bir garabet var.\" - Peyami Safa",
+        oldQuote: "",
+    },
+    {
+        word: "Girift",
+        origin: "Farsça girift",
+        current: "Birbirinin içine girip karışmış; girişik, çapraşık.",
+        old: "",
+        quote: "\"Girift bir konudur bu, en başta yeni şiir kavramı ile karıştırılır.\" - Melih Cevdet Anday",
+        oldQuote: "",
+    },
+    {
+        word: "Haslet",
+        origin: "Arapça haslet",
+        current: "İnsanın yaradılışından gelen özellik, huy.",
+        old: "",
+        quote: "\u201cOnun en güzel hasleti sabırlı olmasıdır.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Hatun",
+        origin: "Türkçe (ha:tun)",
+        current: "Kadın, hanım, kişinin karısı.",
+        old: "Hükümdar eşi, soylu kadın.",
+        quote: "\"Bizim hatun bir manifatura mağazasında tezgâhtardı.\" - Nâzım Hikmet",
+        oldQuote: "\u201cHatun, sarayda büyük saygı görürdü.\u201d",
+    },
+    {
+        word: "Haylaz",
+        origin: "Türkçe",
+        current: "Hoşa gitmeyen davranışlarda bulunan (kimse)",
+        old: "",
+        quote: "\"Gelene geçene dilini çıkarır, edepsiz, haylaz bir çocuktu.\" - Sait Faik Abasıyanık",
+        oldQuote: "",
+    },
+    {
+        word: "Hemdem",
+        origin: "Farsça hem + dem",
+        current: "Yakın dost, arkadaş",
+        old: "",
+        quote: "\u201cOnunla yıllardır hemdem olmuşlardı.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Hercai",
+        origin: "Farsça her + cāʾ + Arapça -ī",
+        current: "Hiçbir şeyde kararlı olmayan veya konudan konuya geçiveren, aşkta değişken olan.",
+        old: "",
+        quote: "\u201cHercai tavırları yüzünden kimse ona güvenmiyordu.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Hodbin",
+        origin: "Farsça hod + bin",
+        current: "Kendini beğenmiş, bencil",
+        old: "",
+        quote: "\"Behiç yalancı, sahtekâr, hodbin ve nankördü fakat sevimliydi.\" - Peyami Safa",
+        oldQuote: "",
+    },
+    {
+        word: "İl",
+        origin: "Türkçe",
+        current: "Ülkenin vali yönetimindeki bölümü; vilayet.",
+        old: "Devlet, yurt.",
+        quote: "\"İllerin idaresi yetki genişliği esasına dayanır.\" - Anayasa",
+        oldQuote: "\u201cİl tutmak büyük bir sorumluluktu.\u201d",
+    },
+    {
+        word: "İştiyak",
+        origin: "Arapça iştiyāḳ",
+        current: "Güçlü istek, güçlü arzu, özleme.",
+        old: "",
+        quote: "\"Bir asırdan beri birkaç neslin iştiyakı budur.\" - Yahya Kemal Beyatlı",
+        oldQuote: "",
+    },
+    {
+        word: "Lafügüzaf",
+        origin: "Farsça lâf u güzâf",
+        current: "Boş, gereksiz söz",
+        old: "",
+        quote: "\"Bence sorun burada başlayıp bitiyordu, gerisi lafügüzaf.\" - Gülriz Sururi",
+        oldQuote: "",
+    },
+    {
+        word: "Lalettayin",
+        origin: "Arapça lâlettayin",
+        current: "Gelişigüzel, rastgele",
+        old: "",
+        quote: "\"Geriye kalan üç dört yolcuya gelince bunlar lalettayin ve renksiz insanlardı.\" - Feridun Fazıl Tülbentçi",
+        oldQuote: "",
+    },
+    {
+        word: "Libas",
+        origin: "Arapça libâs",
+        current: "Giysi, elbise",
+        old: "",
+        quote: "\"Bu libaslar altında ikisinin de yürümeleri, tavırları değişmişti.\" - Ahmet Hikmet Müftüoğlu",
+        oldQuote: "",
+    },
+    {
+        word: "Kamet",
+        origin: "Arapça ḳāmet",
+        current: "Boy, uzunluk, vücut yapısı.",
+        old: "",
+        quote: "\"Gür beyaz saçları, dik kameti, vakur yürüyüşü ile gören çarşı esnafı saygı ile selamlarlar.\" - Haldun Taner",
+        oldQuote: "",
+    },
+    {
+        word: "Kesret",
+        origin: "Arapça kesret",
+        current: "Çokluk, bolluk",
+        old: "",
+        quote: "\"O, tasavvufî tefekküründe kesret içinde vahdeti, yani çoklukta birliği aramaktaydı.\"",
+        oldQuote: "",
+    },
+    {
+        word: "Kişi",
+        origin: "Türkçe",
+        current: "Kadın veya erkeğe verilen genel ad; can, şahıs, şahsiyet, zat, nefer, nüfus.",
+        old: "Erkek.",
+        quote: "\"Sınıfta, sürekli olarak numarası yaramazlar listesinin başına yazılan kişi bendim.\" - Ayla Kutlu",
+        oldQuote: "\u201c Kişiyi vezir eden de karısı, rezil eden de.\u201d",
+    },
+    {
+        word: "Kut",
+        origin: "Türkçe",
+        current: "Devlet idaresinde güç, yaratıcılık ve yetki bakımından sahip olunan üstün güç.",
+        old: "İlahi bir kaynaktan gelen rahmet, bereket.",
+        quote: "\u201cEski Türklerde hükümdarın kut sahibi olduğuna inanılırdı.\u201d",
+        oldQuote: "\u201cKut alan kağan devleti yönetirdi.\u201d",
+    },
+    {
+        word: "Mamafih",
+        origin: "Arapça ma'a mâ fîh",
+        current: "Bununla birlikte, yine de",
+        old: "",
+        quote: "\"Mamafih arada bir ufak tefek işleri de kendi hesabıma alabiliyorum.\" - Nâzım Hikmet",
+        oldQuote: "",
+    },
+    {
+        word: "Mefhum",
+        origin: "Arapça mefhûm",
+        current: "Kavram, anlam",
+        old: "",
+        quote: "\"Dürüst bir insan, inansa da inanmasa da mefhumları yerli yerinde kullanmak borcundadır.\" - Necip Fazıl Kısakürek",
+        oldQuote: "",
+    },
+    {
+        word: "Merdümgiriz",
+        origin: "Farsça merdüm + giriz",
+        current: "İnsan içine karışmaktan hoşlanmayan, insanlardan kaçan (kimse).",
+        old: "",
+        quote: "\u201cMerdümgiriz tavırları yüzünden kimseyle yakınlık kuramıyordu.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Meymenet",
+        origin: "Arapça meymenet",
+        current: "Uğur, bereket",
+        old: "",
+        quote: "\u201cBu işte bir meymenet yok gibi görünüyor.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Meyus",
+        origin: "Arapça mey'ûs",
+        current: "Üzgün, kötümser",
+        old: "",
+        quote: "\"Odaya girince Remzi'yi şaşkın ve meyus bir hâlde gördüm.\" - Memduh Şevket Esendal",
+        oldQuote: "",
+    },
+    {
+        word: "Mukadderat",
+        origin: "Arapça mukadderât",
+        current: "Kader, yazgı",
+        old: "",
+        quote: "\"Ben öyle istiyorum. Mukadderat denilen büyük kuvvet öyle istiyor.\" - Aka Gündüz",
+        oldQuote: "",
+    },
+    {
+        word: "Munis",
+        origin: "Arapça münis",
+        current: "Alışılan, alışılmış, sıcakkanlı.",
+        old: "",
+        quote: "\"Ağlamaktan renkleri silinmiş zannolunan küçük munis gözleriyle bakıyordu.\" - Orhan Seyfi Orhon",
+        oldQuote: "",
+    },
+    {
+        word: "Mutabık",
+        origin: "Arapça mutâbık",
+        current: "Birbirine uyan, karşılıklı olarak anlaşmaya varan, birbiriyle uzlaşan.",
+        old: "",
+        quote: "\"Cadde açılmadan evvel mutabıklarının harabeleriyle henüz bir duvarı duruyordu.\" - Asaf Halet Çelebi",
+        oldQuote: "",
+    },
+    {
+        word: "Muzır",
+        origin: "Arapça muzır",
+        current: "Zararlı. Her şeyi bozan, karıştıran, zararlı işler yapan (çocuk).",
+        old: "",
+        quote: "\"Görüyorsunuz ya iki gözüm, işsizliğin fazlası hem işverenler hem işçi arayanlar için muzırdır!\" - Nâzım Hikmet",
+        oldQuote: "",
+    },
+    {
+        word: "Mübrem",
+        origin: "Arapça mübrem",
+        current: "Çok gerekli olan, kaçınılmaz, vazgeçilmez.",
+        old: "",
+        quote: "\u201cBu karar artık mübrem hâle gelmişti.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Mültefit",
+        origin: "Arapça mültefit",
+        current: "İltifatkâr.",
+        old: "",
+        quote: "\"Bir hâkimin çok ciddi, bir satıcının çok mültefit, bir askerin çok otoriter olması meslekleri icabıdır.\" - Mehmet Kaplan",
+        oldQuote: "",
+    },
+    {
+        word: "Münferit",
+        origin: "Arapça münferit",
+        current: "Tek, ayrı, bireysel.",
+        old: "",
+        quote: "\"Ama bu münferit hayranlıklar aldatmamalı bizi.\" - Cemil Meriç",
+        oldQuote: "",
+    },
+    {
+        word: "Müstehzi",
+        origin: "Arapça müstehzi",
+        current: "Alaycı, alaycı bir biçimde.",
+        old: "",
+        quote: "\"Ne gayritabii, garip, manalı, müstehzi gülüyordu?\" - Peyami Safa",
+        oldQuote: "",
+    },
+    {
+        word: "Müşk",
+        origin: "Farsça müşk",
+        current: "Güzel kokulu bir madde (misk).",
+        old: "",
+        quote: "\"O mecliste müşk-i amber kokuları yayıldı.\"",
+        oldQuote: "",
+    },
+    {
+        word: "Müşkülpesent",
+        origin: "Farsça müşkül + pesent",
+        current: "Zor beğenen, titiz.",
+        old: "",
+        quote: "\u201cMüşkülpesent biri olduğu için hiçbir şeyi kolay kolay beğenmez.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Mütehassis",
+        origin: "Arapça mütehassis",
+        current: "Duygulanmış, duygulanan.",
+        old: "",
+        quote: "\u201cSözleri karşısında oldukça mütehassis oldu.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Müteşekkir",
+        origin: "Arapça müteşekkir",
+        current: "Teşekkür etme durumunda olan, teşekkür borçlu olan.",
+        old: "",
+        quote: "\"Zahmetinden dolayı kendisine çok müteşekkirim.\" - Mehmet Kaplan",
+        oldQuote: "",
+    },
+    {
+        word: "Mütevellit",
+        origin: "Arapça mütevellit",
+        current: "Doğmuş, dünyaya gelmiş. Meydana gelmiş, ileri gelmiş.",
+        old: "",
+        quote: "\"Gönlüm arzu ile korkudan, muhabbet ile nefretten mütevellit duygularla mütehassis olduğum hâlde gidiyordum.\" - Ahmet Hikmet Müftüoğlu",
+        oldQuote: "",
+    },
+    {
+        word: "Namütenahi",
+        origin: "Farsça nâ + mütenahi",
+        current: "Sonsuz, sonsuz bir biçimde.",
+        old: "",
+        quote: "\"Öğleye yakın bu sis dağılınca gökyüzü namütenahi açılıyordu.\" - Sait Faik Abasıyanık",
+        oldQuote: "",
+    },
+    {
+        word: "Nazenin",
+        origin: "Farsça nâzenîn",
+        current: "Nazlı, narin",
+        old: "",
+        quote: "\"Hâlbuki Zübeyde nazenin bir tazeydi.\" - Selim İleri",
+        oldQuote: "",
+    },
+    {
+        word: "Nefaset",
+        origin: "Arapça nefâset",
+        current: "Nefis olma durumu.",
+        old: "",
+        quote: "\"Yemekler her günküne üstün bir nefasete ermiş.\" - Abdülhak Şinasi Hisar",
+        oldQuote: "",
+    },
+    {
+        word: "Niş",
+        origin: "Farsça niş",
+        current: "İşaret, iz, nişan.",
+        old: "",
+        quote: "\"Yaralı askerin yüzünde savaşın nişleri vardı.\"",
+        oldQuote: "",
+    },
+    {
+        word: "Oğul",
+        origin: "Türkçe",
+        current: "Erkek evlat; mahdum, zade.",
+        old: "Cinsiyet gözetmeksizin kız veya erkek çocuk, evlat.",
+        quote: "\"Bir emrihak vaki olduğu zaman yerimize oğullarımız geçecek.\" - Feridun Fazıl Tülbentçi",
+        oldQuote: "\u201cÇam ağacından ağıl olmaz, el çocuğundan oğul olmaz.\u201d Atasözü",
+    },
+    {
+        word: "Paye",
+        origin: "Farsça pâye",
+        current: "Derece, rütbe.",
+        old: "",
+        quote: "\"Lalalık, kavaslık derecelerinden kalfalık payesine yükseldiği bir sırada İsmail'in oğlu yanımdan uzaklaştırıldı, gitti.\" - Yakup Kadri Karaosmanoğlu",
+        oldQuote: "",
+    },
+    {
+        word: "Pâyidar",
+        origin: "Farsça pâyidar",
+        current: "Sonsuza kadar yaşayacak ve kalıcı olan.",
+        old: "",
+        quote: "\"Böyle bir siyaset, sabit ve payidar bir membadan çıkar.\" - Memduh Şevket Esendal",
+        oldQuote: "",
+    },
+    {
+        word: "Payimal",
+        origin: "Farsça pây + mâl",
+        current: "Çiğnenmiş, ayaklar altına alınmış",
+        old: "",
+        quote: "\u201cHakları payimal edilmişti.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Perestiş",
+        origin: "Farsça perestiş",
+        current: "Tapınma, delicesine, taparcasına sevme.",
+        old: "",
+        quote: "'Küçük hanıma bütün ruhumla perestiş ediyorum.' - Ö. Seyfettin",
+        oldQuote: "",
+    },
+    {
+        word: "Revnak",
+        origin: "Farsça revnak",
+        current: "Parlaklık, güzellik.",
+        old: "",
+        quote: "\u201cSefiremizin tiyatrosever oluşu konuşmalara daha da revnak verdi.\u201d - H. Taner",
+        oldQuote: "",
+    },
+    {
+        word: "Saik",
+        origin: "Arapça sâik",
+        current: "Sebep, etken.",
+        old: "",
+        quote: "\"Biz de bilirdik ki bu hilesinin saiki boş yere bir gösteriş merakı değildi.\" - Abdülhak Şinasi",
+        oldQuote: "",
+    },
+    {
+        word: "Sayrı",
+        origin: "Türkçe",
+        current: "Hasta",
+        old: "",
+        quote: "\"Yûnus düşte gördü seni, Sayrı mısın sağlar mısın?\" - Yunus Emre",
+        oldQuote: "",
+    },
+    {
+        word: "Sav",
+        origin: "Türkçe",
+        current: "İddia, tez.",
+        old: "Haber, söz. Atasözü.",
+        quote: "\"Eleştiricilerimiz nasıl olur da böyle bir savda bulunabilirler?\" - Necati Cumalı",
+        oldQuote: "\"Eski Türkler, tecrübe ile sabit olan sözlerine, yani savlarına, Divânü Lûgati't-Türk'te sıkça yer vermiştir\"",
+    },
+    {
+        word: "Savcı",
+        origin: "Türkçe",
+        current: "Kamu yararını gözetmek amacıyla devlet adına dava açmaya yetkili olan görevli.",
+        old: "Sözcü, elçi, haberci.",
+        quote: "\u201cSavcı dosyayı incelemeye aldı.\u201d",
+        oldQuote: "Eski Türkçe: sawçı — \"elçi\" anlamında. [Kaşgarî, Divan-i Lugati't-Türk, 1073]",
+    },
+    {
+        word: "Saye",
+        origin: "Farsça sâye",
+        current: "Gölge. Koruma, yardım.",
+        old: "",
+        quote: "\u201cSayende sayeban olduk İstanbul şehri\u201d - Atilla İlhan",
+        oldQuote: "",
+    },
+    {
+        word: "Sirayet",
+        origin: "Arapça sirâyet",
+        current: "Hastalık başkalarına geçme, bulaşma.",
+        old: "",
+        quote: "\"Yapılan muayene neticesinde, hastalığın kimseye sirayetine meydan verilmeyecektir.\" - Sait Faik Abasıyanık",
+        oldQuote: "",
+    },
+    {
+        word: "Şikemperver",
+        origin: "Farsça şikem + perver",
+        current: "Boğazına düşkün.",
+        old: "",
+        quote: "\"Büyük bir şikemperver olan Ahmet Haşim, yaz aylarında Emin Efendi Lokantasını tercih edermiş.\" - Beşir Ayvazoğlu",
+        oldQuote: "",
+    },
+    {
+        word: "Şimendifer",
+        origin: "Fransızca chemin de fer",
+        current: "Tren, demir yolu.",
+        old: "",
+        quote: "\u201cŞimendifer istasyondan hareket etti.\u201d",
+        oldQuote: "",
+    },
+    {
+        word: "Tahayyül",
+        origin: "Arapça tahayyül",
+        current: "Duyu organlarıyla algılanmış bir şeyi zihinde canlandırma; imgeleme.",
+        old: "",
+        quote: "\"Kapıları yeşil sabahlara açılan sıcak tahayyüllerle dolu yaz geceleri...\" - Orhan Veli Kanık",
+        oldQuote: "",
+    },
+    {
+        word: "Tamu",
+        origin: "Türkçe",
+        current: "Cehennem.",
+        old: "",
+        quote: "\"Cehennem inancında tamu sözcüğünün anlattığı belli bir cehennem tasarımı yoktur.\" - Melih Cevdet",
+        oldQuote: "",
+    },
+    {
+        word: "Teşrin",
+        origin: "Arapça teşrîn",
+        current: "Eski takvimde ekim ve kasım ayları için kullanılan ortak isim.",
+        old: "",
+        quote: "\"Teşrin gecesi inadına da uzundur.\" - Kemal Tahir",
+        oldQuote: "",
+    },
+    {
+        word: "Toy",
+        origin: "Türkçe",
+        current: "Gençliği sebebiyle görgüsüz ve beceriksiz olan, acemi.",
+        old: "Şölen, ziyafet, düğün.",
+        quote: "\"Meslektaşlarım, kim bilir, beni ne kadar bilgisiz ve toy bulacaklardı?\" - Yakup Kadri",
+        oldQuote: "\"Genç, ihtiyar, karı, kız, oğlan uşak dağdağalı cümbüş eyleyip toy meydanına akın etti.\" - Hasan Erimez",
+    },
+    {
+        word: "Tumturak",
+        origin: "Türkçe",
+        current: "Gerekli olmadığı hâlde kulağa hoş gelen, gösterişli kelimeler kullanma. Gösteriş.",
+        old: "",
+        quote: "\"Hecelerimiz de telaffuzda tumturak yapmak için lastik gibi çekilir.\" - Yahya Kemal Beyatlı",
+        oldQuote: "",
+    },
+    {
+        word: "Ukala",
+        origin: "Arapça ukalâ",
+        current: "Kendini akıllı ve bilgili sanan, bilgiçlik taslayan (kimse); bilecen.",
+        old: "Akıllılar. (Arapça ʿāḳil'in çoğulu)",
+        quote: "\"Sinirli, ukala, münasebetsiz herifin biridir.\" - Nâzım Hikmet",
+        oldQuote: "Efâzıl-ı Ukalâ: akıllıların en ileri gelenleri.",
+    },
+    {
+        word: "Uşşak",
+        origin: "Arapça uşşâk",
+        current: "Türk müziğinde ana makamlardan biri.",
+        old: "Aşıklar.",
+        quote: "\"Eğer bunlar uşşak değilse, ben de eşek gibi anırırım şuracıkta!\" - İsmail Hakkı Baltacıoğlu",
+        oldQuote: "\u201cDivan şairleri, uşşakın çektiği ıstırabı ve sevgiliye duydukları derin aşkı mısralarında sıkça dile getirmiştir.\u201d",
+    },
+    {
+        word: "Vâkıf",
+        origin: "Arapça vâkıf",
+        current: "Bilen, haberdar olan.",
+        old: "",
+        quote: "\"Demirci anladı, ses çıkarmadı, duvardan üç beş halka aldı, sanatına vâkıf bir adam sükûnetiyle değneğe taktı.\" - Memduh Şevket Esendal",
+        oldQuote: "",
+    },
+    {
+        word: "Vakur",
+        origin: "Arapça vakur",
+        current: "Ağırbaşlı, ciddi.",
+        old: "",
+        quote: "\"Mamafih çok kibar, terbiyeli, nazlı ve vakur bir kadın.\" - Etem İzzet Benice",
+        oldQuote: "",
+    },
+    {
+        word: "Vaveyla",
+        origin: "Arapça vâ veylâ",
+        current: "Feryat, çığlık.",
+        old: "",
+        quote: "\"Mısır'ın değme ağıtçıları bile sanırım vaveylalarında benimle yarışa giremezlerdi.\" - Yakup Kadri Karaosmanoğlu",
+        oldQuote: "",
+    },
+    {
+        word: "Velhasıl",
+        origin: "Arapça velhâsıl",
+        current: "Kısacası, sonuç olarak.",
+        old: "",
+        quote: "\"Mehtap, iri güller ve senin en güzel aksin / Velhasıl o rüya duruyor yerli yerinde\" - Yahya Kemal Beyatlı",
+        oldQuote: "",
+    },
+    {
+        word: "Verese",
+        origin: "Arapça verese",
+        current: "Mirasçılar.",
+        old: "",
+        quote: "\"Bu taşınmazın üzerinde birden fazla verese hak sahibidir.\"",
+        oldQuote: "",
+    },
+    {
+        word: "Yalım",
+        origin: "Türkçe",
+        current: "Alev.",
+        old: "",
+        quote: "\"Kuru otların yalımı çabuk geçti.\" - Necati Cumalı",
+        oldQuote: "",
+    },
+    {
+        word: "Yavlak",
+        origin: "Türkçe",
+        current: "Çok, pek, gayet",
+        old: "",
+        quote: "\u201cLeyla bunu gördü, yavlak aceplendi.\u201d (TDK Tarama Sözlüğü)",
+        oldQuote: "",
+    },
+    {
+        word: "Yavuz",
+        origin: "Türkçe",
+        current: "Güçlü, iyi.",
+        old: "Fena, kötü. Sert, kızgın, keskin, güçlü, çetin, yaman, şiddetli.",
+        quote: "\u201cYavuz bir komutandı.\u201d",
+        oldQuote: "\u201cYavuz sirke küpüne ziyan eyler.\u201d (TDK Tarama Sözlüğü)",
+    },
+    {
+        word: "Yunmak",
+        origin: "Türkçe",
+        current: "Yıkanmak.",
+        old: "",
+        quote: "\"Kuyunun başında mevtam yunuyor / Düşmanlarım kıs kıs olmuş gülüyor\" - Halk türküsü",
+        oldQuote: "",
+    },
+    {
+        word: "Zevahir",
+        origin: "Arapça ẓevāhir",
+        current: "Görünüm.",
+        old: "",
+        quote: "\"Öyle yapmakla beraber zevahiri kurtarıyor, konuşuyor, gülüşüyordum.\" - R. H. Karay",
+        oldQuote: "",
+    },
+    {
+        word: "Zeyrek",
+        origin: "Farsça zīrek",
+        current: "Zeki.",
+        old: "",
+        quote: "\u201cZeyrek kuş iki ayağından tutulur.\u201d - Atasözü",
+        oldQuote: "",
+    },
+    {
+        word: "Zinhar",
+        origin: "Farsça zinhar",
+        current: "Asla, sakın.",
+        old: "",
+        quote: "\"Fakat adını zinhar benden öğrenemeyeceksin.\" - Reşat Nuri Güntekin",
+        oldQuote: "",
+    },
+];
+
+    let currentIndex = 0;
+    let correct = 0;
+    let wrong = 0;
+
+    function updateCard() {
+        const item = data[currentIndex];
+        document.getElementById('wordTitle').innerText = item.word;
+        document.getElementById('wordOrigin').innerText = item.origin;
+        document.getElementById('currentMeaning').innerText = item.current;
+        document.getElementById('currentQuote').innerText = item.quote;
+
+        const hasOld = item.old && item.old.trim() !== '';
+
+        // Etiket: eski anlam varsa "Günümüz Anlamı", yoksa "Anlamı"
+        document.getElementById('currentLabel').innerText = hasOld ? 'Günümüz Anlamı' : 'Anlamı';
+
+        // Eski anlam bölümünü göster/gizle
+        const oldSection = document.getElementById('oldSection');
+        if (hasOld) {
+            oldSection.style.display = 'block';
+            document.getElementById('oldMeaning').innerText = item.old;
+            document.getElementById('oldQuote').innerText = item.oldQuote || '';
+        } else {
+            oldSection.style.display = 'none';
+        }
+    }
+
+    function nextCard() { currentIndex = (currentIndex + 1) % data.length; updateCard(); }
+    function prevCard() { currentIndex = (currentIndex - 1 + data.length) % data.length; updateCard(); }
+
+    function searchWord() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        const foundIndex = data.findIndex(i => i.word.toLowerCase().includes(term));
+        if (foundIndex !== -1) { currentIndex = foundIndex; updateCard(); }
+    }
+
+    function downloadCard() {
+        const area = document.getElementById('captureArea');
+        html2canvas(area, {backgroundColor: null}).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `${data[currentIndex].word}_kart.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    }
+
+    function startQuiz() {
+        document.getElementById('card-view').style.display = 'none';
+        document.getElementById('quiz-section').style.display = 'block';
+        loadQuizQuestion();
+    }
+
+    function showCards() {
+        document.getElementById('card-view').style.display = 'block';
+        document.getElementById('quiz-section').style.display = 'none';
+    }
+
+    function loadQuizQuestion() {
+        const item = data[Math.floor(Math.random() * data.length)];
+        document.getElementById('quizWord').innerText = item.word;
+        
+        let options = [item.current];
+        while(options.length < 3) {
+            let rand = data[Math.floor(Math.random() * data.length)].current;
+            if(!options.includes(rand)) options.push(rand);
+        }
+        options.sort(() => Math.random() - 0.5);
+
+        const optDiv = document.getElementById('quizOptions');
+        optDiv.innerHTML = '';
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => {
+                if(opt === item.current) {
+                    correct++;
+                    document.getElementById('correctSound').play();
+                } else {
+                    wrong++;
+                    document.getElementById('wrongSound').play();
+                    alert("Yanlış! Doğru cevap: " + item.current);
+                }
+                document.getElementById('correctScore').innerText = correct;
+                document.getElementById('wrongScore').innerText = wrong;
+                loadQuizQuestion();
+            };
+            optDiv.appendChild(btn);
+        });
+    }
+
+    updateCard();
+</script>
+
+</body>
+</html>
